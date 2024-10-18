@@ -6,7 +6,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-ytmusic = YTMusic("oauth.json")
+ytmusic = YTMusic("public/oauth.json")
 
 
 def get_song_info(video_id):
