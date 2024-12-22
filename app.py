@@ -8,13 +8,14 @@ CORS(app)
 
 
 
-def get_video_details(video_id):
-    url = f"https://pipedapi.kavin.rocks/streams/{video_id}"
+def get_song_info(video_id):
+    url = f"https://invid-api.poketube.fun/api/v1/videos/{video_id}"
     response = requests.get(url)
+    print(response)
     if response.status_code == 200:
         data = response.json()
         title = data.get("title", "Unknown Title")
-        uploader = data.get("uploader", "Unknown Uploader")
+        uploader = data.get("author", "Unknown Uploader")
         # Remove "- Topic" if it exists
         if uploader.endswith(" - Topic"):
             uploader = uploader.replace(" - Topic", "")
@@ -23,7 +24,7 @@ def get_video_details(video_id):
         return title , uploader
     else:
         return (f"Failed to fetch data. Status code: {response.status_code}")
-        
+
 
 # Example usage
 
