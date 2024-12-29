@@ -9,13 +9,13 @@ CORS(app)
 
 
 def get_song_info(video_id):
-    url = f"https://invid-api.poketube.fun/api/v1/videos/{video_id}"
+    url = f"https://www.youtube.com/oembed?format=json&url=https%3A%2F%2Fmusic.youtube.com%2Fwatch%3Fv%3D{video_id}"
     response = requests.get(url)
     print(response)
     if response.status_code == 200:
         data = response.json()
         title = data.get("title", "Unknown Title")
-        uploader = data.get("author", "Unknown Uploader")
+        uploader = data.get("author_name", "Unknown Uploader")
         # Remove "- Topic" if it exists
         if uploader.endswith(" - Topic"):
             uploader = uploader.replace(" - Topic", "")
