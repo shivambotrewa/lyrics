@@ -1,4 +1,4 @@
 flask
 syncedlyrics
 flask-cors
-ytmusicapi
+requests

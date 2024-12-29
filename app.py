@@ -1,19 +1,33 @@
 from flask import Flask, request, jsonify
 import syncedlyrics
-from ytmusicapi import YTMusic
 from flask_cors import CORS
+import requests
 
 app = Flask(__name__)
 CORS(app)
 
-ytmusic = YTMusic("oauth.json")
 
 
 def get_song_info(video_id):
-    song_info = ytmusic.get_song(video_id)
-    song_title = song_info['videoDetails']['title']
-    first_artist = song_info['videoDetails']['author']
-    return song_title, first_artist
+    url = f"https://www.youtube.com/oembed?format=json&url=https%3A%2F%2Fmusic.youtube.com%2Fwatch%3Fv%3D{video_id}"
+    response = requests.get(url)
+    print(response)
+    if response.status_code == 200:
+        data = response.json()
+        title = data.get("title", "Unknown Title")
+        uploader = data.get("author_name", "Unknown Uploader")
+        # Remove "- Topic" if it exists
+        if uploader.endswith(" - Topic"):
+            uploader = uploader.replace(" - Topic", "")
+        #print(f"Title: {title}")
+        #print(f"Uploader: {uploader}")
+        return title , uploader
+    else:
+        return (f"Failed to fetch data. Status code: {response.status_code}")
+
+
+# Example usage
+
 
 def getlyrics(Title, Artist):
     lrc = syncedlyrics.search(f"{Title} {Artist}")
