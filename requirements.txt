@@ -1,4 +1,1 @@
-flask
-syncedlyrics
-flask-cors
-ytmusicapi
+docker
