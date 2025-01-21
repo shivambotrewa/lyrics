@@ -1,4 +1,17 @@
+import subprocess
 import docker
+import io
+
+def install_docker():
+    """Install Docker Engine using subprocess."""
+    try:
+        subprocess.run(["sudo", "apt-get", "update"], check=True)
+        subprocess.run(["sudo", "apt-get", "install", "-y", "docker.io"], check=True)
+        subprocess.run(["sudo", "systemctl", "start", "docker"], check=True)
+        subprocess.run(["sudo", "systemctl", "enable", "docker"], check=True)
+        print("Docker Engine installed and started successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred during Docker installation: {e}")
 
 def build_and_run_docker():
     client = docker.from_env()
@@ -34,4 +47,5 @@ def build_and_run_docker():
     print(f"Container {container.short_id} is running. Access it at http://localhost:4200")
 
 if __name__ == "__main__":
+    install_docker()
     build_and_run_docker()
