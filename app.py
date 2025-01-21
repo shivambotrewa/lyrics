@@ -1,60 +1,37 @@
-from flask import Flask, request, jsonify
-import syncedlyrics
-from ytmusicapi import YTMusic
-from flask_cors import CORS
+import docker
 
-app = Flask(__name__)
-CORS(app)
+def build_and_run_docker():
+    client = docker.from_env()
 
-ytmusic = YTMusic("oauth.json")
+    dockerfile = """
+    # Use a base image that supports systemd, for example, Ubuntu
+    FROM ubuntu:20.04
 
+    # Install necessary packages
+    RUN apt-get update && \\
+    apt-get install -y shellinabox && \\
+    apt-get install -y systemd && \\
+    apt-get clean && \\
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    RUN echo 'root:root' | chpasswd
+    # Expose the web-based terminal port
+    EXPOSE 4200
 
-def get_song_info(video_id):
-    song_info = ytmusic.get_song(video_id)
-    song_title = song_info['videoDetails']['title']
-    first_artist = song_info['videoDetails']['author']
-    return song_title, first_artist
+    # Start shellinabox
+    CMD ["/usr/bin/shellinaboxd", "-t", "-s", "/:LOGIN"]
+    """
 
-def getlyrics(Title, Artist):
-    lrc = syncedlyrics.search(f"{Title} {Artist}")
-    return lrc
+    # Build the Docker image
+    image, build_logs = client.images.build(fileobj=io.BytesIO(dockerfile.encode('utf-8')), tag='shellinabox:latest', rm=True)
 
-def parse_lyrics(lrc):
-    lyrics_dict = {}
-    if lrc:
-        for line in lrc.split('\n'):
-            if line.strip():
-                try:
-                    timestamp, lyric = line.split(']', 1)
-                    timestamp = timestamp[1:]  # Remove the opening bracket
-                    lyrics_dict[timestamp] = lyric.strip()
-                except ValueError:
-                    continue  # Skip lines that don't match the expected format
-    return lyrics_dict
+    # Run the Docker container
+    container = client.containers.run(
+        image='shellinabox:latest',
+        ports={'4200/tcp': 4200},
+        detach=True
+    )
 
-@app.route('/lyrics', methods=['GET'])
-def get_lyrics():
-    video_id = request.args.get('video_id')
-    if not video_id:
-        return jsonify({"Responce":400,
-                        "error": "Missing video_id parameter"}), 400
+    print(f"Container {container.short_id} is running. Access it at http://localhost:4200")
 
-    try:
-        title, artist = get_song_info(video_id)
-        lrc = getlyrics(title, artist)
-        lyrics_dict = parse_lyrics(lrc)
-
-        if not lyrics_dict:
-            return jsonify({"Responce": 404,
-                            "error": "lyrics not found"}), 404
-
-        response = {
-            "Responce": 200,
-            "lyrics": lyrics_dict
-        }
-        return jsonify(response)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port = 8000)
+if __name__ == "__main__":
+    build_and_run_docker()
