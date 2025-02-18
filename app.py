@@ -30,7 +30,7 @@ def get_song_info(video_id):
 
 
 def getlyrics(Title, Artist):
-    lrc = syncedlyrics.search(f"{Title} {Artist}",lang="hi",enhanced=True)
+    lrc = syncedlyrics.search(f"{Title} {Artist}",enhanced=True)
     return lrc
 
 def parse_lyrics(lrc):
